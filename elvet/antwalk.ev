@@ -1,0 +1,113 @@
+Direction ~enum {
+    Up,
+    Down,
+    Left,
+    Right,
+}
+
+Walk ~struct {
+    n      : int,
+    world  : [char],
+    ant    : (int, int),
+    fallen : bool,
+}
+
+Walk ~init {
+    (n: int) {
+        let world = [' ' | _ <- 0..(n*n)];
+        let ant = (0, 0);
+        let fallen = false;
+        world[0] = '*';
+        ~ // syntactic sugar for ~ {n, world, ant, fallen}
+    }
+}
+
+Walk ~do {
+    walk(direction: Direction) -> bool {
+        match direction {
+            Up    => ~ant.1 -= 1,
+            Down  => ~ant.1 += 1,
+            Left  => ~ant.0 -= 1,
+            Right => ~ant.0 += 1,
+        }
+        ~fallen = match ~ant {
+            (0..~n, 0..~n) => {
+                ~world[~ant.0 + (~ant.1 * ~n)] = '*';
+                false
+            },
+            _ => true,
+        }
+        !~fallen
+    }
+}
+
+Walk ~display {
+    () -> String {
+        let buf = String();
+        for y in 0..~n {
+            for x in 0..~n {
+                if !~fallen && ~ant == (x, y) {
+                   buf.push('x');
+                }
+                else {
+                    buf.push(~world[x + (y * ~n)]);
+                }
+             }
+             buf.push('\n');
+        }
+        buf
+    }
+}
+
+fn antwalk() {
+    println("Welcome to AntWalk!");
+    let walk = Walk(10);
+    print(walk);
+
+    loop {
+        println("[U]p, [D]own, [L]eft, or [R]ight");
+        let command = input(">>> ");
+
+        let direction: Direction = match command.upper() {
+            "U" => Up,
+            "D" => Down,
+            "L" => Left,
+            "R" => Right,
+            _ => {
+                println("Command not recognised");
+                continue;
+            },
+            ! : IO => {
+                println("Could not read stdin");
+                return;
+            }
+        };
+
+        let result = walk.walk(direction);
+        print(walk);
+
+        if !result {
+           print("Walk has concluded");
+           print("Enter a filename to save your walk:");
+           let filename = input(">>> ").trim();
+           let file = fs.create(filename);
+           let result = file.write(display::String(walk));
+           match result {
+               _ => {
+                   println("Walk successfully written to: {}", filename);
+               },
+               ! : Input => {
+                   println("Could not read stdin");
+               },
+               ! : {fs.Create, fs.Write} => {
+                   println("Could not write walk to {}", filename);
+               }
+           }
+           return;
+        }
+    }
+}
+
+fn main() {
+    antwalk();
+}
