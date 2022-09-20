@@ -1,13 +1,13 @@
-use std::io;
-use std::io::Write;
 use std::fmt;
 use std::fs::File;
+use std::io;
+use std::io::Write;
 
 enum Direction {
     Up,
     Down,
     Left,
-    Right
+    Right,
 }
 
 struct Walk {
@@ -25,7 +25,7 @@ impl Walk {
             ant: (0, 0),
             fallen: false,
         };
-        for _ in 0..(n*n) {
+        for _ in 0..(n * n) {
             walk.world.push('.');
         }
         walk.world[0] = '*';
@@ -34,49 +34,44 @@ impl Walk {
 
     fn walk(&mut self, direction: Direction) -> bool {
         let did_fall = match direction {
-            Direction::Up    => {
+            Direction::Up => {
                 if self.ant.1 == 0 {
-                    true 
-                }
-                else {
+                    true
+                } else {
                     self.ant.1 -= 1;
                     false
                 }
-            },
-            Direction::Down  => {
+            }
+            Direction::Down => {
                 if self.ant.1 == (self.n - 1) {
-                    true 
-                }
-                else {
+                    true
+                } else {
                     self.ant.1 += 1;
                     false
                 }
-            },
-            Direction::Left  => {
+            }
+            Direction::Left => {
                 if self.ant.0 == 0 {
-                    true 
-                }
-                else {
+                    true
+                } else {
                     self.ant.0 -= 1;
                     false
                 }
-            },
+            }
             Direction::Right => {
                 if self.ant.0 == (self.n - 1) {
-                    true 
-                }
-                else {
+                    true
+                } else {
                     self.ant.0 += 1;
                     false
                 }
-            },
+            }
         };
 
         if did_fall {
-            self.ant = (self.n+1, self.n+1);
+            self.ant = (self.n + 1, self.n + 1);
             self.fallen = true;
-        }
-        else {
+        } else {
             self.world[self.ant.0 + (self.ant.1 * self.n)] = '*';
         }
 
@@ -121,22 +116,14 @@ fn antwalk() {
             Err(_) => {
                 println!("Could not read stdin");
                 return;
-            },
+            }
         };
 
         let direction = match command.to_uppercase().trim() {
-            "U" => {
-                Direction::Up
-            },
-            "D" => {
-                Direction::Down
-            },
-            "L" => {
-                 Direction::Left
-            },
-            "R" => {
-                  Direction::Right
-            },
+            "U" => Direction::Up,
+            "D" => Direction::Down,
+            "L" => Direction::Left,
+            "R" => Direction::Right,
             _ => {
                 println!("Command not recognised");
                 continue;
@@ -160,28 +147,28 @@ fn antwalk() {
                 Err(_) => {
                     println!("Could not read stdin");
                     return;
-                },
+                }
             };
 
             let filename = filename.trim();
-            
-	    let mut outf = match File::create(&filename) {
-		Ok(f) => f,
-		Err(_) => {
-	            println!("Could not create file: {}", filename);
-                    return;
-		}
-	    };
 
-	    match outf.write_all(format!("{}", walk).as_bytes()) {
-		Err(_) => {
+            let mut outf = match File::create(&filename) {
+                Ok(f) => f,
+                Err(_) => {
+                    println!("Could not create file: {}", filename);
+                    return;
+                }
+            };
+
+            match outf.write_all(format!("{}", walk).as_bytes()) {
+                Err(_) => {
                     println!("Could not write walk to {}", filename);
-                },
-		Ok(_) => {
+                }
+                Ok(_) => {
                     println!("Walk successfully written to {}", filename);
                 }
-	    }
-            return
+            }
+            return;
         }
     }
 }
